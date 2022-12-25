@@ -14,20 +14,31 @@
         ├── app<br>
         │   ├──api<br>
         │   │   ├── __init__.py<br>
-        │   │   ├── errors.py<br>
-        │   │   └──  routes.py<br>
+        │   │   ├── routes<br>
+        │   │   │   ├── author.py<br>
+        │   │   │   ├── book.py<br>
+        │   │   │   ├── edition_author.py<br>
+        │   │   │   ├── edition.py<br>
+        │   │   │   ├── language.py<br>
+        │   │   │   ├── publisher.py<br>
+        │   │   │   ├── role.py<br>
+        │   │   │   └── user.py<br>
+        │   │   ├── responses.py<br>
+        │   │   └── validators.py<br>
+        │   ├── tests<br>
         │   ├── __init__.py<br>
         │   └──  models.py<br>
         ├── migrations<br>
         ├── config.py<br>
         ├── main.py<br>
-        ├── requirements.txt<br>
-        └── settings.py<br>
+        └── requirements.txt<br>
         
-api - каталог с файлами приложения<br>
-migrations - содержит сценарии миграций<br>
+app - каталог с файлами приложения:<br>
+       api - маршруты и вспомогательные модули;<br>
+       tests - модульные тесты<br>
+migrations - сценарии миграций<br>
 config.py - файл конфигурации<br>
-main.py - скрипт для запуска приложения<br>
+main.py - точка входа<br>
 
 <b>Запуск приложения:</b><br>
 
@@ -35,7 +46,7 @@ main.py - скрипт для запуска приложения<br>
 <li>Клонировать репозиторий</li>
 <li>Установить библиотеки (pip install requirements.txt)</li>
 <li>Установить значения глобальных переменных (файл конфигурации импортирует значения глобальных переменных из файла .env, при их отсутствии устанавливает значения по умолчанию):<br>
-  SECRET_KEY, JWT_KEY, DATABASE_URL</li>
+  SECRET_KEY, JWT_KEY, DATABASE_URL, TEST_DATABASE_URL (опционально)</li>
 <li>В терминале или в файле .flaskenv установить FLASK_APP=main</li>
 <li>Создать базу данных:
 
@@ -78,7 +89,7 @@ main.py - скрипт для запуска приложения<br>
       {
       "username": "john doe",
       "email": "john@example.com",
-      "password": "pswd123"
+      "password": "psw123"
       }
   
    Ответ:
@@ -123,77 +134,56 @@ main.py - скрипт для запуска приложения<br>
       }
       
   </li>
+ Приложение поддерживает CRUD-операции всех таблиц БД (кроме User) посредством POST, GET, PUT и DELETE-запросов.
+ Маршрут для POST-запросов: 
+    
+      http://127.0.0.1:5000/api/<имя таблицы>
+ Маршрут для GET, PUT и DELETE-запросов: 
+    
+      http://127.0.0.1:5000/api/<имя таблицы>/<int:id>   
  
- Для следующих запросов необходима передача токена доступа в заголовках:<br>
+ POST и PUT запросы требуют передачи JSON-формата с ключами - именами полей таблицы. 
+
+ Для запросов необходима передача токена доступа в заголовках:<br>
  HEADERS:<br>
   Authorization: access_token<br>
   
-  <li>Запрос определенной редакции книги по id редакции<br>
+Примеры запросов к таблице Edition:
+  <li>Получение редакции книги по id редакции<br>
     Запрос:
     
-      GET http://127.0.0.1:5000/api/editions/<int:id>
+      GET http://127.0.0.1:5000/api/edition/<int:id>
       
    Ответ:  
     
       200 
+None, 'text': None, 'edition_author': []}
+
       {
-      "title": "",
-      "authors": [
-          {
-          "name": "",
-          "role": ""
-          }
-        ],
-      "text": "",
+      "id": "",
       "isbn": "",
+      "book_id": "",
+      "book": "",
+      "publisher_id": "",
       "publisher": "",
+      "language_id": "",
       "language": "",
-      "year": ""
+      "year": "",
+      "text": "",
+      "edition_author": []
       }
-      
-  </li>
-  <li>Запрос всех редакций книги по её id (без полного текста)<br>
-    Запрос:
-    
-      GET http://127.0.0.1:5000/api/editions/?book_id=<int:id>
-      
-   Ответ:  
-    
-      200 
-      {"editions": {
-                   "title": "",
-                    "authors": [
-                        {
-                        "name": "",
-                        "role": ""
-                        }
-                      ],
-                    "isbn": "",
-                    "publisher": "",
-                    "language": "",
-                    "year": ""
-                  }
-      }
-   
+
   </li>
   <li>Добавление редакции книги в БД<br>
     Запрос:
     
-      POST http://127.0.0.1:5000/api/editions
+      POST http://127.0.0.1:5000/api/edition
       {
-      "title": "",
-      "authors": [
-          {
-          "name": "",
-          "role": "",
-          "order": "",
-          }
-       ],
-      "text": "",
+      "book_id": "",
       "isbn": "",
-      "publisher": "",
-      "language": "",
-      "year": ""
+      "language_id": "",
+      "publisher_id": "",
+      "text": ""
       }
       
    Ответ:  
@@ -206,10 +196,9 @@ main.py - скрипт для запуска приложения<br>
   <li>Изменение редакции книги по id<br>
     Запрос:
     
-      POST http://127.0.0.1:5000/api/editions/<int:id>
+      POST http://127.0.0.1:5000/api/edition/<int:id>
       {
       <поля, которые требуется изменить, аналогично запросу на добавление>
-      <не поддерживается изменение авторов>
       }
       
    Ответ:  
@@ -222,7 +211,7 @@ main.py - скрипт для запуска приложения<br>
   <li>Удаление редакции книги по id<br>
     Запрос:
     
-      DELETE http://127.0.0.1:5000/api/editions/<int:id>
+      DELETE http://127.0.0.1:5000/api/edition/<int:id>
     
    Ответ:  
    
@@ -231,6 +220,7 @@ main.py - скрипт для запуска приложения<br>
       }   
       
   </li>
+</ol>
    
    
    

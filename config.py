@@ -13,3 +13,7 @@ class Config:
                               "sqlite:///" + os.path.join(basedir, "app.db")
     SQALCHEMY_TRACK_MODIFICATIONS = False
     JSON_AS_ASCII = False
+
+
+class TestConfig(Config):
+    SQLALCHEMY_DATABASE_URI = os.environ.get("TEST_DATABASE_URL")

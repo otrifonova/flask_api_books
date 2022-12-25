@@ -4,7 +4,7 @@ from flask_jwt_extended import create_access_token, create_refresh_token, jwt_re
 from app import db
 from app.api import bp
 from app.models import User, Book, Edition, Author, Role, Publisher, Language, EditionAuthor
-from app.api.errors import error_response
+from app.api.responses import error_response
 
 
 @bp.route("/register", methods=["POST"])
@@ -115,7 +115,7 @@ def create_edition():
     if not book:
         book = Book(title=title)
         db.session.add(book)
-        db.commit()
+        db.session.commit()
     data["book_id"] = book.id
 
     publisher_name = data["publisher"]
@@ -123,7 +123,7 @@ def create_edition():
     if not publisher:
         publisher = Publisher(name=publisher_name)
         db.session.add(publisher)
-        db.commit()
+        db.session.commit()
     data["publisher_id"] = publisher.id
 
     language_name = data["language"]

@@ -2,6 +2,60 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 
 
+class BaseModel(db.Model):
+    __abstract__ = True
+
+    @classmethod
+    def get_name(cls):
+        return cls.__name__
+
+    @classmethod
+    def attr_exists(cls, attr_name, attr_value):
+        col = cls.__table__.columns.get(attr_name)
+        return bool(cls.query.filter(col == attr_value).first())
+
+    @classmethod
+    def get_columns(cls):
+        columns = []
+        for col in cls.__dict__.keys():
+            if not col.startswith("_"):
+                columns.append(col)
+        return columns
+
+    def to_dict_inner(self):
+        columns = self.__table__.columns.keys()
+        data = {}
+        for col in columns:
+            data[col] = self.__getattribute__(f"{col}")
+        return data
+
+    def to_dict(self):
+        columns = self.get_columns()
+        data = {}
+        for col in columns:
+            value = self.__getattribute__(f"{col}")
+            if value and not isinstance(value, (int, str)):
+                if isinstance(value, BaseModel):
+                    data[col] = value.to_dict_inner()
+                else:
+                    if len(value) <= 1:
+                        for v in value:
+                            data[col] = v.to_dict_inner()
+                    else:
+                        data[col] = []
+                        for v in value:
+                            data[col].append(v.to_dict_inner())
+            else:
+                data[col] = value
+        return data
+
+    def from_dict(self, data):
+        columns = self.__table__.columns
+        for col in columns:
+            if col.name in data:
+                self.__setattr__(col.name, data[col.name])
+
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
@@ -17,94 +71,71 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def exists(self):
+        if User.query.filter((User.username == self.username) | (User.email == self.email)).first():
+            return True
+        else:
+            return False
 
-class EditionAuthor(db.Model):
+
+class EditionAuthor(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     edition_id = db.Column(db.Integer, db.ForeignKey("edition.id"))
     author_id = db.Column(db.Integer, db.ForeignKey("author.id"))
     role_id = db.Column(db.Integer, db.ForeignKey("role.id"))
     order = db.Column(db.Integer)
-    author = db.relationship("Author")
-    role = db.relationship("Role")
-    books = db.relationship("Book",
-                            secondary="join(Edition, Book, Edition.book_id==Book.id)",
-                            primaryjoin="(EditionAuthor.edition_id == Edition.id)",
-                            lazy="dynamic")
+    author = db.relationship("Author", viewonly=True)
+    role = db.relationship("Role", viewonly=True)
+    # book = db.relationship("Book",
+    #                         secondary="join(Edition, Book, Edition.book_id==Book.id)",
+    #                         primaryjoin="(EditionAuthor.edition_id == Edition.id)",
+    #                         backref="edition_author")
 
 
-class Book(db.Model):
+class Book(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(255), index=True, unique=True)
-    editions = db.relationship("Edition", lazy="dynamic")
-    authors = db.relationship("Author",
-                              secondary="join(EditionAuthor, Edition, EditionAuthor.edition_id==Edition.id)",
-                              primaryjoin="(Edition.book_id == Book.id)", lazy="dynamic")
+    title = db.Column(db.String(255), index=True)
+    editions = db.relationship("Edition", cascade="all, delete-orphan")
+    # authors = db.relationship("Author",
+    #                           secondary="join(EditionAuthor, Edition, EditionAuthor.edition_id==Edition.id)",
+    #                           primaryjoin="(Edition.book_id == Book.id)")
 
 
-class Author(db.Model):
+class Author(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), index=True, unique=True)
-    books = db.relationship("Book",
-                            secondary="join(EditionAuthor, Edition, EditionAuthor.edition_id==Edition.id)",
-                            primaryjoin="(EditionAuthor.author_id == Author.id)", lazy="dynamic")
+    name = db.Column(db.String(255), index=True)
+    # books = db.relationship("Book",
+    #                         secondary="join(EditionAuthor, Edition, EditionAuthor.edition_id==Edition.id)",
+    #                         primaryjoin="(EditionAuthor.author_id == Author.id)")
 
 
-class Role(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), index=True, unique=True)
-
-
-class Publisher(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), index=True, unique=True)
-
-
-class Language(db.Model):
+class Role(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), index=True, unique=True)
 
 
-class Edition(db.Model):
+class Publisher(BaseModel):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), index=True)
+
+
+class Language(BaseModel):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), index=True, unique=True)
+
+
+class Edition(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     isbn = db.Column(db.String, unique=True)
     book_id = db.Column(db.Integer, db.ForeignKey("book.id"))
-    book = db.relationship("Book")
+    book = db.relationship("Book", viewonly=True)
     publisher_id = db.Column(db.Integer, db.ForeignKey("publisher.id"))
-    publisher = db.relationship("Publisher")
+    publisher = db.relationship("Publisher", viewonly=True)
     language_id = db.Column(db.Integer, db.ForeignKey("language.id"))
-    language = db.relationship("Language")
+    language = db.relationship("Language", viewonly=True)
     year = db.Column(db.Integer)
     text = db.Column(db.Text)
-    authors = db.relationship("Author",
-                              secondary="join(EditionAuthor, Author, EditionAuthor.author_id==Author.id)",
-                              primaryjoin=(EditionAuthor.edition_id == id), lazy="dynamic")
-
-    def to_dict(self, limited=False):
-        data = {
-            "id": self.id,
-            "isbn": self.isbn,
-            "book_id": self.book_id,
-            "book_title": self.book.title,
-            "publisher_id": self.publisher_id,
-            "publisher_name": self.publisher.name,
-            "language_id": self.language_id,
-            "language_name": self.language.name,
-            "year": self.year,
-            "authors": [],
-        }
-        if not limited:
-            data["text"] = self.text
-        """
-        authors = [{"author_id": author.id,
-                    "author_name": author.name,
-                    "author_role": author.role
-                    } for author in self.authors]
-        
-        data["authors"] = authors
-        """
-        return data
-
-    def from_dict(self, data):
-        for field in ['isbn', 'year', 'text', 'book_id', 'publisher_id', 'language_id']:
-            if field in data:
-                setattr(self, field, data[field])
+    edition_author = db.relationship("EditionAuthor", cascade="all, delete-orphan")
+    # authors = db.relationship("Author",
+    #                           secondary="join(EditionAuthor, Author, EditionAuthor.author_id==Author.id)",
+    #                           primaryjoin=(EditionAuthor.edition_id == id))
