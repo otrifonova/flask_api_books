@@ -4,3 +4,4 @@ __pycache__
 .flaskenv
 venv
 books_json
+/app.db

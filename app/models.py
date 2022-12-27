@@ -15,6 +15,13 @@ class BaseModel(db.Model):
         return bool(cls.query.filter(col == attr_value).first())
 
     @classmethod
+    def get_required_fields(cls):
+        required_fields = cls.__table__.columns.keys()
+        if "id" in required_fields:
+            required_fields.remove("id")
+        return required_fields
+
+    @classmethod
     def get_columns(cls):
         columns = []
         for col in cls.__dict__.keys():
@@ -139,3 +146,35 @@ class Edition(BaseModel):
     # authors = db.relationship("Author",
     #                           secondary="join(EditionAuthor, Author, EditionAuthor.author_id==Author.id)",
     #                           primaryjoin=(EditionAuthor.edition_id == id))
+
+
+class ModelGetter:
+    _models = {"author": Author,
+               "book": Book,
+               "edition": Edition,
+               "edition_author": EditionAuthor,
+               "language": Language,
+               "publisher": Publisher,
+               "role": Role,
+               }
+
+    _foreign_keys = {"author_id": Author,
+                     "book_id": Book,
+                     "edition_id": Edition,
+                     "edition_author_id": EditionAuthor,
+                     "language_id": Language,
+                     "publisher_id": Publisher,
+                     "role_id": Role,
+                     }
+
+    @classmethod
+    def get_model(cls, m):
+        return cls._models[m]
+
+    @classmethod
+    def get_foreign_keys(cls, m):
+        foreign_keys = set(cls._models[m].get_required_fields()) & set(cls._foreign_keys.keys())
+        foreign_keys_dict = {}
+        for fk in foreign_keys:
+            foreign_keys_dict[fk] = cls._foreign_keys[fk]
+        return foreign_keys_dict

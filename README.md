@@ -14,16 +14,9 @@
         ├── app<br>
         │   ├──api<br>
         │   │   ├── __init__.py<br>
-        │   │   ├── routes<br>
-        │   │   │   ├── author.py<br>
-        │   │   │   ├── book.py<br>
-        │   │   │   ├── edition_author.py<br>
-        │   │   │   ├── edition.py<br>
-        │   │   │   ├── language.py<br>
-        │   │   │   ├── publisher.py<br>
-        │   │   │   ├── role.py<br>
-        │   │   │   └── user.py<br>
         │   │   ├── responses.py<br>
+        │   │   ├── routes.py<br>
+        │   │   ├── user.py<br>
         │   │   └── validators.py<br>
         │   ├── tests<br>
         │   ├── __init__.py<br>
@@ -34,8 +27,9 @@
         └── requirements.txt<br>
         
 app - каталог с файлами приложения:<br>
-       api - маршруты и вспомогательные модули;<br>
-       tests - модульные тесты<br>
+     api/routes.py и api/users.py - маршруты;<br>
+     api/responses.py и api/validators.py - вспомогательные модули;<br>
+     tests - модульные тесты<br>
 migrations - сценарии миграций<br>
 config.py - файл конфигурации<br>
 main.py - точка входа<br>
@@ -44,17 +38,18 @@ main.py - точка входа<br>
 
 <ol>
 <li>Клонировать репозиторий</li>
-<li>Установить библиотеки (pip install requirements.txt)</li>
+<li>Установить виртуальную среду и библиотеки (pip install requirements.txt)</li>
 <li>Установить значения глобальных переменных (файл конфигурации импортирует значения глобальных переменных из файла .env, при их отсутствии устанавливает значения по умолчанию):<br>
-  SECRET_KEY, JWT_KEY, DATABASE_URL, TEST_DATABASE_URL (опционально)</li>
+  SECRET_KEY, JWT_KEY, DATABASE_URL</li>
 <li>В терминале или в файле .flaskenv установить FLASK_APP=main</li>
 <li>Создать базу данных:
 
       flask db init<br>
       flask db migrate<br>
       flask db upgrade
-      
-   По умолчанию используется SQLite.</li>
+    
+   Для тестов используется база данных SQLite.</li>
+
 <li>Запустить сервер:
 
     flask run

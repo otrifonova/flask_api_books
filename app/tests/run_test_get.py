@@ -4,7 +4,7 @@ from app import create_app
 from config import TestConfig
 
 
-def no_delete_suite():
+def get_suite():
     suite = ut.TestSuite()
 
     suite.addTest(TestGetMethod('test_book'))

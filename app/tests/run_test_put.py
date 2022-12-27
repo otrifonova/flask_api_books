@@ -4,7 +4,7 @@ from app import create_app
 from config import TestConfig
 
 
-def no_delete_suite():
+def put_suite():
     suite = ut.TestSuite()
 
     suite.addTest(TestPutMethod('test_book'))
@@ -22,4 +22,4 @@ if __name__ == '__main__':
     runner = ut.TextTestRunner()
     app = create_app(config_class=TestConfig)
     with app.app_context():
-        runner.run(no_delete_suite())
+        runner.run(put_suite())
