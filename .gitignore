@@ -5,3 +5,4 @@ __pycache__
 venv
 books_json
 /app.db
+/app_test.db
