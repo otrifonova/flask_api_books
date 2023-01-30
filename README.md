@@ -1,4 +1,4 @@
-Этот проект - реализация REST API приложения на микрофреймворке Flask.<br>
+Это учебный проект - реализация REST API приложения на микрофреймворке Flask.<br>
 Позволяет добавлять, получать и удалять определенные редакции книг.<br>
 
 
@@ -10,21 +10,21 @@
 </ul>
 <b>Структура проекта:</b><br>
 
-        .<br>
-        ├── app<br>
-        │   ├──api<br>
-        │   │   ├── __init__.py<br>
-        │   │   ├── responses.py<br>
-        │   │   ├── routes.py<br>
-        │   │   ├── user.py<br>
-        │   │   └── validators.py<br>
-        │   ├── tests<br>
-        │   ├── __init__.py<br>
-        │   └──  models.py<br>
-        ├── migrations<br>
-        ├── config.py<br>
-        ├── main.py<br>
-        └── requirements.txt<br>
+        .
+        ├── app
+        │   ├──api
+        │   │   ├── __init__.py
+        │   │   ├── responses.py
+        │   │   ├── routes.py
+        │   │   ├── user.py
+        │   │   └── validators.py
+        │   ├── tests
+        │   ├── __init__.py
+        │   └──  models.py
+        ├── migrations
+        ├── config.py
+        ├── main.py
+        └── requirements.txt
         
 app - каталог с файлами приложения:<br>
      api/routes.py и api/users.py - маршруты;<br>
@@ -38,7 +38,7 @@ main.py - точка входа<br>
 
 <ol>
 <li>Клонировать репозиторий</li>
-<li>Установить виртуальную среду и библиотеки (pip install requirements.txt)</li>
+<li>Установить виртуальную среду и библиотеки (pip install -r requirements.txt)</li>
 <li>Установить значения глобальных переменных (файл конфигурации импортирует значения глобальных переменных из файла .env, при их отсутствии устанавливает значения по умолчанию):<br>
   SECRET_KEY, JWT_KEY, DATABASE_URL</li>
 <li>В терминале или в файле .flaskenv установить FLASK_APP=main</li>
@@ -54,7 +54,9 @@ main.py - точка входа<br>
 
     flask run
     
-</li><br>
+</li>
+</ol>
+<p>Приложение будет доступно из браузера на локальном сервере http://localhost:5000/.</p>
 
 
 <b>База данных</b><br>
@@ -74,10 +76,16 @@ main.py - точка входа<br>
 <img width="494" alt="db_books" src="https://user-images.githubusercontent.com/109738460/206855909-e1159a2e-262d-4e49-84c8-ee58ec13d2ac.PNG">
 
 <br>
-<br>
-<b>Поддерживаемые методы API</b><br>
-<ol type="1">
-  <li>Регистрация пользователя<br>
+
+<h3>Поддерживаемые методы API</h3>
+Для использования приложения необходимо зарегистрировать пользователя и получить токен авторизации.
+В дальнейших запросах необходимо передавать токен в заголовках запроса:
+
+    HEADERS:
+    Authorization: access_token
+
+<ul>
+  <li><b>Регистрация пользователя</b><br>
     Запрос:
 
       POST http://127.0.0.1:5000/api/register
@@ -95,7 +103,7 @@ main.py - точка входа<br>
       }
      
   </li>
-  <li>Авторизация, запрос токена<br>
+  <li><b>Авторизация, запрос токена</b><br>
     Запрос:
     
       POST http://127.0.0.1:5000/api/login
@@ -114,7 +122,7 @@ main.py - точка входа<br>
       }
        
   </li>
-  <li>Рефреш токена<br>
+  <li><b>Рефреш токена</b><br>
      Запрос:
      
       GET http://127.0.0.1:5000/api/token/refresh
@@ -125,10 +133,13 @@ main.py - точка входа<br>
     
       200 
       {
-      "access_token": access_token
+      "access_token": access_token,
+      "refresh_token": refresh_token
       }
       
   </li>
+</ul>
+<br>
  Приложение поддерживает CRUD-операции всех таблиц БД (кроме User) посредством POST, GET, PUT и DELETE-запросов.
  Маршрут для POST-запросов: 
     
@@ -139,20 +150,17 @@ main.py - точка входа<br>
  
  POST и PUT запросы требуют передачи JSON-формата с ключами - именами полей таблицы. 
 
- Для запросов необходима передача токена доступа в заголовках:<br>
- HEADERS:<br>
-  Authorization: access_token<br>
   
 Примеры запросов к таблице Edition:
-  <li>Получение редакции книги по id редакции<br>
+<ol type="1">
+ <li>Получение редакции книги по id редакции<br>
     Запрос:
     
       GET http://127.0.0.1:5000/api/edition/<int:id>
       
    Ответ:  
     
-      200 
-None, 'text': None, 'edition_author': []}
+      200
 
       {
       "id": "",
@@ -216,9 +224,3 @@ None, 'text': None, 'edition_author': []}
       
   </li>
 </ol>
-   
-   
-   
- 
- 
- 
